@@ -482,22 +482,7 @@ function renderDetail(){
   if(customShifts[key]){
     const cs=CUSTOM_SHIFT_TYPES[customShifts[key]];
     add(`${cs.icon} Đã đặt: ${cs.label}${cs.hours?` (${cs.hours}h)`:''}`);
-  }else if(officeMode){
-    // Chế độ hành chính
-    const dow=selected.getDay();
-    if(dow===0){
-      add('🏖️ Chủ nhật – Nghỉ (chế độ hành chính).');
-    }else{
-      add('🏢 Ca hành chính: 08:30 → 16:30 (8 tiếng).');
-    }
-  }else if(!items.length){
-    add('🌿 Ngày nghỉ – không có giờ làm trong ngày này (theo chu kỳ).');
-  }else{
-    for(const x of items){
-      add((x.starts?'🕒 Bắt đầu ca: ':'↪️ Ca từ hôm trước: ')+datetime(x.begin));
-      add('🏁 Kết thúc ca: '+datetime(x.end));
-    }
-    add(`Lịch lặp lại: làm 12 giờ → nghỉ ${config.restHours} giờ.`);
+  
   }
   
   // Hiển thị ghi chú
