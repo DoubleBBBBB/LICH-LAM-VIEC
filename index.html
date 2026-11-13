@@ -34,12 +34,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .day.shift-day{background:#dcecff}
 .day.shift-night{background:#e8defe}
 .day.shift-off{background:#e8f4e9}
+.day.shift-office{background:#fff4d9}
 .num{font-weight:700}
 .tags{display:flex;flex-direction:column;gap:3px;margin-top:5px}
 .tag{font-size:10px;line-height:1.35;border-radius:5px;padding:2px 0}
 .day-shift{background:#dcecff;color:#174d92}
 .night-shift{background:#e8defe;color:#5e3c97}
 .off-shift{background:#e8f4e9;color:#36764a}
+.office-shift{background:#fff4d9;color:#8a5a00}
 .att-mark{background:#fff3cd;color:#8a6d00;font-weight:700}
 .legend{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px;font-size:12px;color:#516079}
 .legend span{display:flex;align-items:center;gap:5px}
@@ -67,6 +69,18 @@ form .full{grid-column:1/-1}
 .pay-list div:last-child{border-bottom:0}
 .pay-list .hrs{float:right;font-weight:700;color:#1d3a63}
 
+/* ===== TOGGLE HÀNH CHÍNH ===== */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:#fff8e8;border:1px solid #f2dfae;margin-bottom:12px}
+.toggle-row .toggle-info{flex:1;min-width:0}
+.toggle-row .toggle-title{font-size:14px;font-weight:700;color:#8a5a00}
+.toggle-row .toggle-sub{font-size:12px;color:#a07b2e;margin-top:2px}
+.switch{position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#d6dbe4;border-radius:28px;transition:.25s}
+.slider:before{content:"";position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch input:checked + .slider{background:#e0a92e}
+.switch input:checked + .slider:before{transform:translateX(22px)}
+
 /* ===== MODAL CHỌN CA ===== */
 .modal-overlay{position:fixed;inset:0;background:rgba(15,30,60,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
 .modal-overlay.show{display:flex}
@@ -84,10 +98,11 @@ form .full{grid-column:1/-1}
 .shift-option.night:hover{border-color:#7c4dcc;background:#f3edff}
 .shift-option.off{border-color:#c8e8d2}
 .shift-option.off:hover{border-color:#36764a;background:#effaf2}
+.shift-option.office{border-color:#f2dfae}
+.shift-option.office:hover{border-color:#c99a2e;background:#fff8e8}
 .shift-option.note{border-color:#f7e2a8}
 .shift-option.note:hover{border-color:#c99a2e;background:#fff9e6}
 
-/* ===== KHUNG GHI CHÚ TRONG MODAL ===== */
 .note-box{display:none;margin-bottom:16px;padding:14px;border-radius:14px;background:#fffbeb;border:1px solid #f7e2a8}
 .note-box.show{display:block}
 .note-box label{color:#8a6d00;font-weight:650}
@@ -131,6 +146,7 @@ form .full{grid-column:1/-1}
   <div class="week"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div>
   <div id="days" class="days"></div>
   <div class="legend">
+    <span><i class="dot office-shift"></i>Hành chính</span>
     <span><i class="dot day-shift"></i>Ca ngày</span>
     <span><i class="dot night-shift"></i>Ca đêm</span>
     <span><i class="dot off-shift"></i>Nghỉ</span>
@@ -157,10 +173,23 @@ form .full{grid-column:1/-1}
 
 <!-- ===== CÀI ĐẶT ===== -->
 <section class="card">
-  <h2 style="font-size:19px;margin:0 0 15px">⚙️ Cài đặt chu kỳ</h2>
+  <h2 style="font-size:19px;margin:0 0 15px">⚙️ Cài đặt</h2>
+
+  <!-- Toggle ca hành chính -->
+  <div class="toggle-row">
+    <div class="toggle-info">
+      <div class="toggle-title">🏢 Ca hành chính</div>
+      <div class="toggle-sub">T2 → T7: 08:30 – 16:30 · CN nghỉ</div>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="officeToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+
   <form id="settings">
-    <div><label for="startDate">Ngày bắt đầu</label><input id="startDate" type="date" required></div>
-    <div><label for="startTime">Giờ bắt đầu</label><input id="startTime" type="time" required></div>
+    <div><label for="startDate">Ngày bắt đầu chu kỳ</label><input id="startDate" type="date" required></div>
+    <div><label for="startTime">Giờ bắt đầu chu kỳ</label><input id="startTime" type="time" required></div>
     <div class="full">
       <label for="restHours">Thời gian nghỉ sau mỗi ca 12 tiếng</label>
       <select id="restHours">
@@ -191,6 +220,9 @@ form .full{grid-column:1/-1}
       <button class="shift-option night" data-shift="night">
         <span class="icon">🌙</span><span>Ca đêm</span><span class="detail">12 tiếng</span>
       </button>
+      <button class="shift-option office" data-shift="office">
+        <span class="icon">🏢</span><span>Hành chính</span><span class="detail">8h30 – 16h30</span>
+      </button>
       <button class="shift-option off" data-shift="off">
         <span class="icon">🏖️</span><span>Nghỉ</span><span class="detail">Không làm</span>
       </button>
@@ -199,7 +231,6 @@ form .full{grid-column:1/-1}
       </button>
     </div>
 
-    <!-- Khung ghi chú -->
     <div class="note-box" id="noteBox">
       <label for="modalNoteInput">📝 Ghi chú cho ngày này</label>
       <textarea id="modalNoteInput" maxlength="2000" placeholder="Nhập ghi chú..."></textarea>
@@ -225,6 +256,7 @@ const KEY='lich-ca-personal-v1';
 const NOTES_KEY='lich-ca-personal-notes-v1';
 const ATT_KEY='lich-ca-personal-attendance-v1';
 const CUSTOM_SHIFT_KEY='lich-ca-custom-shifts-v1';
+const OFFICE_KEY='lich-ca-office-mode-v1';
 
 const HOUR=3600000, WORK=12*HOUR;
 
@@ -247,6 +279,10 @@ try{
   }
 }catch(e){}
 
+// ===== OFFICE MODE =====
+let officeMode=false;
+try{officeMode=localStorage.getItem(OFFICE_KEY)==='1'}catch(e){}
+
 // ===== NOTES =====
 let notes={};
 try{notes=JSON.parse(localStorage.getItem(NOTES_KEY))||{}}catch(e){notes={}}
@@ -267,12 +303,14 @@ const SHIFT_TYPES={
   night10:{label:'Ca 10 đêm',hours:10,in:'19:00',out:'05:00 (+1)',cls:'night-shift'},
   night11:{label:'Ca 11 đêm',hours:11,in:'19:00',out:'06:00 (+1)',cls:'night-shift'},
   night12:{label:'Ca 12 đêm',hours:12,in:'19:00',out:'07:00 (+1)',cls:'night-shift'},
-  leave8:{label:'Nghỉ phép',hours:8,in:'—',out:'—',cls:'off-shift'}
+  leave8:{label:'Nghỉ phép',hours:8,in:'—',out:'—',cls:'off-shift'},
+  office8:{label:'Hành chính',hours:8,in:'08:30',out:'16:30',cls:'office-shift'}
 };
 
 const CUSTOM_SHIFT_TYPES={
   day:{label:'Ca ngày',icon:'🌞',hours:12,cls:'shift-day',tagCls:'day-shift'},
   night:{label:'Ca đêm',icon:'🌙',hours:12,cls:'shift-night',tagCls:'night-shift'},
+  office:{label:'Hành chính',icon:'🏢',hours:8,cls:'shift-office',tagCls:'office-shift'},
   off:{label:'Nghỉ',icon:'🏖️',hours:0,cls:'shift-off',tagCls:'off-shift'}
 };
 
@@ -305,12 +343,23 @@ function occurrencesForDay(day){
 
 function isDay(d){const h=d.getHours();return h>=6&&h<18}
 
+// ===== LABELS =====
 function labels(day){
   const key=dateKey(day);
+  // 1. Custom shift ưu tiên cao nhất
   if(customShifts[key]){
     const cs=CUSTOM_SHIFT_TYPES[customShifts[key]];
     return [{label:cs.icon+' '+cs.label,cls:cs.tagCls,type:'custom'}];
   }
+  // 2. Chế độ hành chính đang bật
+  if(officeMode){
+    const dow=day.getDay(); // 0=CN, 1=T2, ..., 6=T7
+    if(dow===0){
+      return [{label:'Nghỉ CN',cls:'off-shift',type:'office'}];
+    }
+    return [{label:'🏢 Hành chính',cls:'office-shift',type:'office'}];
+  }
+  // 3. Lịch chu kỳ 12h
   const items=occurrencesForDay(day);
   const starts=items.filter(x=>x.starts);
   if(starts.length){
@@ -394,11 +443,8 @@ function openModal(date){
   selectedDateForModal=date;
   const d=date.getDate(),m=date.getMonth()+1,y=date.getFullYear();
   $('modalTitle').textContent=`Chọn ca cho ${pad(d)}/${pad(m)}/${y}`;
-  
-  // Reset trạng thái note box
   $('noteBox').classList.remove('show');
   $('modalNoteInput').value=notes[dateKey(date)]||'';
-  
   $('shiftModal').classList.add('show');
 }
 
@@ -431,22 +477,30 @@ function renderDetail(){
   const add=t=>{const p=document.createElement('p');p.textContent=t;box.append(p)};
   
   const key=dateKey(selected);
+  
+  // Custom shift
   if(customShifts[key]){
     const cs=CUSTOM_SHIFT_TYPES[customShifts[key]];
     add(`${cs.icon} Đã đặt: ${cs.label}${cs.hours?` (${cs.hours}h)`:''}`);
-  }
-  
-  if(!items.length){
+  }else if(officeMode){
+    // Chế độ hành chính
+    const dow=selected.getDay();
+    if(dow===0){
+      add('🏖️ Chủ nhật – Nghỉ (chế độ hành chính).');
+    }else{
+      add('🏢 Ca hành chính: 08:30 → 16:30 (8 tiếng).');
+    }
+  }else if(!items.length){
     add('🌿 Ngày nghỉ – không có giờ làm trong ngày này (theo chu kỳ).');
   }else{
     for(const x of items){
       add((x.starts?'🕒 Bắt đầu ca: ':'↪️ Ca từ hôm trước: ')+datetime(x.begin));
       add('🏁 Kết thúc ca: '+datetime(x.end));
     }
-    add(`Lịch lặp lại: làm 12 giờ → nghỉ ${config.restHours} giờ. Ca bắt đầu cách nhau ${12+Number(config.restHours)} giờ.`);
+    add(`Lịch lặp lại: làm 12 giờ → nghỉ ${config.restHours} giờ.`);
   }
   
-  // Hiển thị ghi chú nếu có
+  // Hiển thị ghi chú
   if(notes[key]){
     const noteDiv=document.createElement('div');
     noteDiv.style.cssText='margin-top:10px;padding:10px 12px;border-radius:12px;background:#fffbeb;border:1px solid #f7e2a8;font-size:14px;color:#6b5300';
@@ -490,17 +544,23 @@ function renderDetail(){
     const hint=document.createElement('p');
     hint.className='muted';
     hint.style.margin='0 0 8px';
-    hint.textContent='Chọn loại ca đã làm (ghi vào ngày bắt đầu ca):';
+    hint.textContent='Chọn loại ca đã làm:';
     box.append(hint);
     
     const grid=document.createElement('div');
     grid.className='att-grid';
-    const order=['day10','night10','day11','night11','day12','night12','leave8'];
+    const order=['day10','night10','day11','night11','day12','night12','office8','leave8'];
     for(const type of order){
       const st=SHIFT_TYPES[type];
       const b=document.createElement('button');
       b.type='button';
-      b.textContent=type==='leave8'?'Nghỉ phép (8h)':`${st.hours}h ${type.startsWith('day')?'ngày':'đêm'}`;
+      if(type==='leave8'){
+        b.textContent='Nghỉ phép (8h)';
+      }else if(type==='office8'){
+        b.textContent='🏢 Hành chính (8h)';
+      }else{
+        b.textContent=`${st.hours}h ${type.startsWith('day')?'ngày':'đêm'}`;
+      }
       b.title=`${st.label}${st.in!=='—'?`: ${st.in} → ${st.out}`:''}`;
       b.addEventListener('click',()=>{
         att[key]={type,hours:st.hours,markedAt:Date.now()};
@@ -517,10 +577,10 @@ function renderDetail(){
   
   const hint2=document.createElement('p');
   hint2.className='muted';
-  hint2.textContent='Ca đêm bắt đầu(19:00) Ca ngày bắt đầu(7:00).';
+  hint2.textContent='Ca đêm: 19:00. Ca ngày: 07:00. Hành chính: 08:30.';
   box.append(hint2);
   
-  // ===== GHI CHÚ (giữ nguyên ở phần detail) =====
+  // ===== GHI CHÚ =====
   const divider2=document.createElement('hr');
   divider2.style.cssText='border:0;border-top:1px solid #e5ebf4;margin:16px 0';
   box.append(divider2);
@@ -632,6 +692,31 @@ function renderPayroll(){
 
 // ===== CLOCK =====
 function nextInfo(now){
+  if(officeMode){
+    // Chế độ hành chính: T2-T7 làm 8h30-16h30, CN nghỉ
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const dow=d.getDay();
+    if(dow===0){
+      // CN nghỉ → ca tiếp theo là T2
+      const nextMon=plusDays(d,1);
+      nextMon.setHours(8,30,0,0);
+      return {active:false,next:nextMon.getTime()};
+    }
+    const begin=atMidnight(now).getTime();
+    begin && d.setHours(8,30,0,0);
+    const startMs=d.getTime();
+    const endMs=startMs+8*HOUR;
+    const t=now.getTime();
+    if(t<startMs)return {active:false,next:startMs};
+    if(t<endMs)return {active:true,end:endMs,next:startMs+24*HOUR};
+    // Sau 16:30 → ca tiếp theo là ngày mai (nếu mai là CN thì T2)
+    let nextDay=plusDays(d,1);
+    if(nextDay.getDay()===0)nextDay=plusDays(nextDay,1);
+    nextDay.setHours(8,30,0,0);
+    return {active:false,next:nextDay.getTime()};
+  }
+  
+  // Chế độ chu kỳ 12h
   const CYCLE=cycle(),s=start().getTime(),t=now.getTime();
   const k=Math.floor((t-s)/CYCLE),begin=s+Math.max(0,k)*CYCLE;
   if(t<s)return {active:false,next:s};
@@ -658,6 +743,16 @@ function renderClock(){
 $('startDate').value=config.date;
 $('startTime').value=config.time;
 $('restHours').value=String(config.restHours);
+$('officeToggle').checked=officeMode;
+
+$('officeToggle').addEventListener('change',e=>{
+  officeMode=e.target.checked;
+  try{localStorage.setItem(OFFICE_KEY,officeMode?'1':'0')}catch(e){}
+  $('saved').textContent=officeMode?'✓ Đã bật chế độ hành chính (T2-T7, 8h30-16h30)':'Đã tắt chế độ hành chính';
+  renderCalendar();
+  renderDetail();
+  renderClock();
+});
 
 $('settings').addEventListener('submit',e=>{
   e.preventDefault();
@@ -717,7 +812,6 @@ document.querySelectorAll('.shift-option[data-shift]').forEach(btn=>{
   });
 });
 
-// Nút mở khung ghi chú trong modal
 $('btnOpenNote').addEventListener('click',()=>{
   $('noteBox').classList.toggle('show');
   if($('noteBox').classList.contains('show')){
@@ -725,7 +819,6 @@ $('btnOpenNote').addEventListener('click',()=>{
   }
 });
 
-// Lưu ghi chú từ modal
 $('btnSaveNote').addEventListener('click',()=>{
   if(!selectedDateForModal)return;
   const key=dateKey(selectedDateForModal);
@@ -739,7 +832,6 @@ $('btnSaveNote').addEventListener('click',()=>{
   closeModal();
 });
 
-// Xóa ghi chú từ modal
 $('btnDeleteNote').addEventListener('click',()=>{
   if(!selectedDateForModal)return;
   const key=dateKey(selectedDateForModal);
