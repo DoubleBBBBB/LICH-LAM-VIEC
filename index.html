@@ -70,11 +70,11 @@ form .full{grid-column:1/-1}
 /* ===== MODAL CHỌN CA ===== */
 .modal-overlay{position:fixed;inset:0;background:rgba(15,30,60,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
 .modal-overlay.show{display:flex}
-.modal-box{background:#fff;border-radius:22px;padding:22px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .25s ease}
+.modal-box{background:#fff;border-radius:22px;padding:22px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .25s ease;max-height:90vh;overflow-y:auto}
 @keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 .modal-title{font-size:17px;font-weight:750;color:#192c48;margin-bottom:16px;text-align:center}
 .shift-options{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
-.shift-option{padding:14px 18px;border-radius:14px;border:2px solid transparent;cursor:pointer;display:flex;align-items:center;gap:12px;font-size:15px;font-weight:650;font-family:inherit;background:#f6f8fc;color:#17243b;transition:.18s}
+.shift-option{padding:14px 18px;border-radius:14px;border:2px solid transparent;cursor:pointer;display:flex;align-items:center;gap:12px;font-size:15px;font-weight:650;font-family:inherit;background:#f6f8fc;color:#17243b;transition:.18s;text-align:left}
 .shift-option:hover{transform:translateX(3px);background:#eef4ff}
 .shift-option .icon{font-size:20px}
 .shift-option .detail{font-size:12px;color:#728198;font-weight:500;margin-left:auto}
@@ -84,6 +84,19 @@ form .full{grid-column:1/-1}
 .shift-option.night:hover{border-color:#7c4dcc;background:#f3edff}
 .shift-option.off{border-color:#c8e8d2}
 .shift-option.off:hover{border-color:#36764a;background:#effaf2}
+.shift-option.note{border-color:#f7e2a8}
+.shift-option.note:hover{border-color:#c99a2e;background:#fff9e6}
+
+/* ===== KHUNG GHI CHÚ TRONG MODAL ===== */
+.note-box{display:none;margin-bottom:16px;padding:14px;border-radius:14px;background:#fffbeb;border:1px solid #f7e2a8}
+.note-box.show{display:block}
+.note-box label{color:#8a6d00;font-weight:650}
+.note-box textarea{width:100%;padding:12px;border:1px solid #e6d9a8;border-radius:12px;font:inherit;resize:vertical;background:#fff;color:#17243b;font-size:15px;min-height:90px}
+.note-box .note-actions{display:flex;gap:8px;margin-top:10px}
+.note-box .note-actions button{flex:1;padding:10px;font-size:14px;border-radius:10px}
+.note-save{background:#c99a2e;color:#fff}
+.note-del{background:#fde8e8;color:#a32020}
+
 .modal-actions{display:flex;gap:10px}
 .modal-actions button{flex:1;padding:12px;border-radius:12px;font-size:14px;font-weight:650;cursor:pointer;border:0;font-family:inherit}
 .modal-cancel{background:#edf2fa;color:#52617a}
@@ -181,9 +194,23 @@ form .full{grid-column:1/-1}
       <button class="shift-option off" data-shift="off">
         <span class="icon">🏖️</span><span>Nghỉ</span><span class="detail">Không làm</span>
       </button>
+      <button class="shift-option note" id="btnOpenNote">
+        <span class="icon">📝</span><span>Ghi chú</span><span class="detail">Thêm ghi chú</span>
+      </button>
     </div>
+
+    <!-- Khung ghi chú -->
+    <div class="note-box" id="noteBox">
+      <label for="modalNoteInput">📝 Ghi chú cho ngày này</label>
+      <textarea id="modalNoteInput" maxlength="2000" placeholder="Nhập ghi chú..."></textarea>
+      <div class="note-actions">
+        <button class="note-save" id="btnSaveNote">💾 Lưu ghi chú</button>
+        <button class="note-del" id="btnDeleteNote">🗑️ Xóa ghi chú</button>
+      </div>
+    </div>
+
     <div class="modal-actions">
-      <button class="modal-clear" id="btnClearShift">🗑️ Xóa</button>
+      <button class="modal-clear" id="btnClearShift">🗑️ Xóa ca</button>
       <button class="modal-cancel" id="btnCancelShift">Hủy</button>
     </div>
   </div>
@@ -228,7 +255,7 @@ try{notes=JSON.parse(localStorage.getItem(NOTES_KEY))||{}}catch(e){notes={}}
 let att={};
 try{att=JSON.parse(localStorage.getItem(ATT_KEY))||{}}catch(e){att={}}
 
-// ===== CUSTOM SHIFTS (Ngày / Đêm / Nghỉ) =====
+// ===== CUSTOM SHIFTS =====
 let customShifts={};
 try{customShifts=JSON.parse(localStorage.getItem(CUSTOM_SHIFT_KEY))||{}}catch(e){customShifts={}}
 
@@ -243,7 +270,6 @@ const SHIFT_TYPES={
   leave8:{label:'Nghỉ phép',hours:8,in:'—',out:'—',cls:'off-shift'}
 };
 
-// ===== CUSTOM SHIFT TYPES =====
 const CUSTOM_SHIFT_TYPES={
   day:{label:'Ca ngày',icon:'🌞',hours:12,cls:'shift-day',tagCls:'day-shift'},
   night:{label:'Ca đêm',icon:'🌙',hours:12,cls:'shift-night',tagCls:'night-shift'},
@@ -279,15 +305,12 @@ function occurrencesForDay(day){
 
 function isDay(d){const h=d.getHours();return h>=6&&h<18}
 
-// ===== LABELS (ưu tiên custom shift) =====
 function labels(day){
   const key=dateKey(day);
-  // Nếu có custom shift → ưu tiên
   if(customShifts[key]){
     const cs=CUSTOM_SHIFT_TYPES[customShifts[key]];
     return [{label:cs.icon+' '+cs.label,cls:cs.tagCls,type:'custom'}];
   }
-  // Ngược lại dùng lịch chu kỳ
   const items=occurrencesForDay(day);
   const starts=items.filter(x=>x.starts);
   if(starts.length){
@@ -324,7 +347,6 @@ function renderCalendar(){
     let cls='day';
     if(key===dateKey(selected))cls+=' selected';
     if(key===todayKey)cls+=' today';
-    // Thêm class màu nền theo custom shift
     if(customShifts[key])cls+=' '+CUSTOM_SHIFT_TYPES[customShifts[key]].cls;
     btn.className=cls;
     btn.setAttribute('aria-label',fmt(d));
@@ -358,7 +380,6 @@ function renderCalendar(){
     }
     btn.append(tags);
     
-    // Click vào ngày → mở modal chọn ca
     btn.addEventListener('click',()=>{
       selected=d;
       openModal(d);
@@ -373,12 +394,18 @@ function openModal(date){
   selectedDateForModal=date;
   const d=date.getDate(),m=date.getMonth()+1,y=date.getFullYear();
   $('modalTitle').textContent=`Chọn ca cho ${pad(d)}/${pad(m)}/${y}`;
+  
+  // Reset trạng thái note box
+  $('noteBox').classList.remove('show');
+  $('modalNoteInput').value=notes[dateKey(date)]||'';
+  
   $('shiftModal').classList.add('show');
 }
 
 function closeModal(){
   $('shiftModal').classList.remove('show');
   selectedDateForModal=null;
+  $('noteBox').classList.remove('show');
 }
 
 function setCustomShift(date,shift){
@@ -403,14 +430,12 @@ function renderDetail(){
   
   const add=t=>{const p=document.createElement('p');p.textContent=t;box.append(p)};
   
-  // Custom shift info
   const key=dateKey(selected);
   if(customShifts[key]){
     const cs=CUSTOM_SHIFT_TYPES[customShifts[key]];
     add(`${cs.icon} Đã đặt: ${cs.label}${cs.hours?` (${cs.hours}h)`:''}`);
   }
   
-  // Cycle info
   if(!items.length){
     add('🌿 Ngày nghỉ – không có giờ làm trong ngày này (theo chu kỳ).');
   }else{
@@ -419,6 +444,14 @@ function renderDetail(){
       add('🏁 Kết thúc ca: '+datetime(x.end));
     }
     add(`Lịch lặp lại: làm 12 giờ → nghỉ ${config.restHours} giờ. Ca bắt đầu cách nhau ${12+Number(config.restHours)} giờ.`);
+  }
+  
+  // Hiển thị ghi chú nếu có
+  if(notes[key]){
+    const noteDiv=document.createElement('div');
+    noteDiv.style.cssText='margin-top:10px;padding:10px 12px;border-radius:12px;background:#fffbeb;border:1px solid #f7e2a8;font-size:14px;color:#6b5300';
+    noteDiv.innerHTML=`<b>📝 Ghi chú:</b> ${notes[key].replace(/</g,'&lt;')}`;
+    box.append(noteDiv);
   }
   
   // ===== CHẤM CÔNG =====
@@ -487,7 +520,7 @@ function renderDetail(){
   hint2.textContent='Ca đêm bắt đầu(19:00) Ca ngày bắt đầu(7:00).';
   box.append(hint2);
   
-  // ===== GHI CHÚ =====
+  // ===== GHI CHÚ (giữ nguyên ở phần detail) =====
   const divider2=document.createElement('hr');
   divider2.style.cssText='border:0;border-top:1px solid #e5ebf4;margin:16px 0';
   box.append(divider2);
@@ -543,16 +576,16 @@ function renderDetail(){
   });
   actions.append(clear);
   box.append(actions);
-  
-  const hint3=document.createElement('p');
-  hint3.className='muted';
-  hint3.textContent='Ghi chú lưu hiện biểu tượng 📝 trên lịch.';
-  box.append(hint3);
 }
 
 function saveAtt(){
   try{localStorage.setItem(ATT_KEY,JSON.stringify(att))}
   catch(e){$('saved').textContent='Không lưu được chấm công.'}
+}
+
+function saveNotes(){
+  try{localStorage.setItem(NOTES_KEY,JSON.stringify(notes))}
+  catch(e){$('saved').textContent='Không lưu được ghi chú.'}
 }
 
 // ===== PAYROLL =====
@@ -670,7 +703,7 @@ $('payNext').addEventListener('click',()=>{
 });
 
 // ===== MODAL EVENTS =====
-document.querySelectorAll('.shift-option').forEach(btn=>{
+document.querySelectorAll('.shift-option[data-shift]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const shift=btn.dataset.shift;
     if(selectedDateForModal){
@@ -682,6 +715,41 @@ document.querySelectorAll('.shift-option').forEach(btn=>{
       closeModal();
     }
   });
+});
+
+// Nút mở khung ghi chú trong modal
+$('btnOpenNote').addEventListener('click',()=>{
+  $('noteBox').classList.toggle('show');
+  if($('noteBox').classList.contains('show')){
+    $('modalNoteInput').focus();
+  }
+});
+
+// Lưu ghi chú từ modal
+$('btnSaveNote').addEventListener('click',()=>{
+  if(!selectedDateForModal)return;
+  const key=dateKey(selectedDateForModal);
+  const value=$('modalNoteInput').value.trim();
+  if(value)notes[key]=value;
+  else delete notes[key];
+  saveNotes();
+  $('saved').textContent=value?`✓ Đã lưu ghi chú cho ${fmt(selectedDateForModal)}.`:`Đã xóa ghi chú cho ${fmt(selectedDateForModal)}.`;
+  renderCalendar();
+  renderDetail();
+  closeModal();
+});
+
+// Xóa ghi chú từ modal
+$('btnDeleteNote').addEventListener('click',()=>{
+  if(!selectedDateForModal)return;
+  const key=dateKey(selectedDateForModal);
+  delete notes[key];
+  saveNotes();
+  $('modalNoteInput').value='';
+  $('saved').textContent=`Đã xóa ghi chú cho ${fmt(selectedDateForModal)}.`;
+  renderCalendar();
+  renderDetail();
+  closeModal();
 });
 
 $('btnCancelShift').addEventListener('click',closeModal);
@@ -700,7 +768,6 @@ $('shiftModal').addEventListener('click',e=>{
   if(e.target.id==='shiftModal')closeModal();
 });
 
-// ===== KEYBOARD =====
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape')closeModal();
 });
@@ -712,7 +779,6 @@ renderClock();
 renderPayroll();
 setInterval(renderClock,30000);
 
-// ===== SERVICE WORKER =====
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
 })();
